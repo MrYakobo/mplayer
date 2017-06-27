@@ -1,0 +1,6 @@
+---
+- Make prettify smarter: Terminate name at end of filename.
+- Allow for user inputting regexes for "nicer" filenames, alternatively read from exif the "real" title. (the latter is probably a lot better)
+---
+- Read song title from EXIF
+- Autoplay when song has ended

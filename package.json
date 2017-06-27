@@ -1,0 +1,26 @@
+{
+  "name": "mplayer",
+  "version": "1.0.0",
+  "description": "This is (yet) another project inspired by tapio's incredible (live-server)[https://github.com/tapio/live-server]. I've recently found myself listening to music, but hating all of the \"good\" options for a music player on Linux, which drove me to this project. My aim with this project is to make it as natural as `live-server` whilst developing.",
+  "main": "bin/main.js",
+  "bin": {
+    "mplayer": "bin/main.js"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "bower": "^1.8.0",
+    "express": "^4.15.3",
+    "handlebars": "^4.0.10",
+    "opn": "^5.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "./node_modules/bower/bin/bower install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

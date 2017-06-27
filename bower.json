@@ -1,0 +1,20 @@
+{
+  "name": "mplayer",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "MrYakobo <jakob.lindskog@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/MrYakobo/vim",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "materialize": "^0.99.0"
+  }
+}

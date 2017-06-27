@@ -1,0 +1,226 @@
+<html>
+<head>
+	<link rel="icon" href="favicon.png?q=2">
+	<link rel="stylesheet" href="bower_components/materialize/dist/css/materialize.min.css">
+	<title>mplayer :: {{title}}</title>
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/materialize/dist/js/materialize.min.js"></script>
+	<!--Import Google Icon Font-->
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<style>
+	h3{
+		height:50px;
+		overflow:hidden;
+	}
+	button i.material-icons{
+		font-size:1.9em;
+		padding: 0rem 3rem;
+	}
+	.song{
+		cursor: pointer;
+	}
+	</style>
+</head>
+<body class=" center-align" onkeydown="keypress(event)">
+<audio id="audio" onended="songEnded()" src=""></audio>
+
+<div id="mainctrl" class="card-panel red darken-4 white-text">
+	<h3 id="songname"></h3>
+	<button class="btn-large white green-text waves-effect waves-darken" onclick="change(-1)"><i class="material-icons">skip_previous</i></button>
+	<button id="playpause" class="btn-large white teal-text waves-effect waves-darken" onclick="toggle()"><i class="material-icons">play_arrow</i></button>
+	<button class="btn-large white green-text waves-effect waves-darken" onclick="songEnded()"><i class="material-icons">skip_next</i></button>
+	<br><br>
+
+	<button id="shuffle" class="btn-large white pink-text waves-effect waves-darken" onclick="shuffleToggle()"><i class="material-icons">shuffle</i></button>
+	<button id="loop" class="btn-large white pink-text waves-effect waves-darken" onclick="loopToggle()"><i class="material-icons">loop</i></button>
+		<!--
+	<div class="card-panel">
+		 <p class="range-field">
+		 	<p id="timeText" class="black-text">0:00</p>
+		       <input type="range" id="time" min="0" max="100" value="0" onchange="timeChange()" />
+		 </p>
+ </div>
+-->
+</div>
+<div class="container">
+	<div class="row card-panel teal-text" id="songs">
+		<h5>Playlist</h5>
+		<div class="black-text left-align row" id="music">
+		</div>
+	</div>
+</div>
+</body>
+<script src="bower_components/moment/min/moment.min.js"></script>
+<script>
+	function loopToggle(){
+		loop = !loop;
+		$("#loop").toggleClass('pink white white-text pink-text');
+	}
+	var loop = false;
+	function songEnded(){
+		//if in the middle of songs:
+		//special case if last song: if loop true: change(1)
+		if(i < songs.length - 1 || loop){
+			change(1);
+		}
+		//else: pause the playback
+		else{
+			a().pause();
+			
+			updateGraphics();
+		}
+	}
+	function keypress(e){
+		console.log(e);
+		if(e.key == ' '){
+			toggle();
+		}
+		else if(e.key == 'ArrowRight'){
+			songEnded();
+		}
+		else if(e.key == 'ArrowLeft'){
+			change(-1);
+		}
+		else if(e.key == 'r'){
+			shuffleToggle();
+			return;
+		}
+		else if(e.key == 'l'){
+			loopToggle();
+		}
+		else{
+			return;
+		}
+		e.preventDefault();
+	}
+
+	var originalTitle = "mplayer :: {{title}}";
+
+	function createCards(){
+		var s = "";
+
+		for(var j = 0; j < songs.length; j++){
+				var t = `<div class="song card-panel z-index-1" onclick="changeTo(${j})">${prettify(songs[j])}</div>`;
+			//s += `<div class="col s4 m3 l2">${t}</div>`;
+			s += `<div style="display:inline-block">${t}</div>`
+		}
+
+		$("#music").html(s);
+		$($("#songs .song")[this.i]).addClass('blue white-text');
+	}
+
+	function shuffle(array) {
+	    let counter = array.length;
+
+	    // While there are elements in the array
+	    while (counter > 0) {
+		// Pick a random index
+		let index = Math.floor(Math.random() * counter);
+
+		// Decrease counter by 1
+		counter--;
+
+		// And swap the last element with it
+		let temp = array[counter];
+		array[counter] = array[index];
+		array[index] = temp;
+	    }
+
+	    return array;
+	}
+
+
+	function shuffleToggle(){
+		//if not already shuffled
+		var currentSong = songs[i];
+		if(JSON.stringify(songs) == JSON.stringify(originalSongs)){
+
+			//shuffle, then find the currently selected song.
+			songs = shuffle(songs);
+		}
+		//if shuffled, unshuffle
+		else{
+			songs = JSON.parse(JSON.stringify(originalSongs));
+		}
+		for(var j = 0; j < songs.length; j++){
+			if(songs[j] == currentSong){
+				i = j;
+				break;
+			}
+		}
+		
+		createCards();
+		$("#shuffle").toggleClass('pink white white-text pink-text');
+	}
+
+	function a(){
+		return document.getElementById('audio');
+	}
+
+	var i = 0;
+	var songs = {{music}};
+	var originalSongs = JSON.parse(JSON.stringify(songs));
+
+	$("#songname").html(prettify(songs[0]));
+	a().src = songs[0];
+	createCards();
+
+	function playSong(){
+		var d = a();
+		d.pause();
+		d.src = songs[i];
+		d.play();
+		$("#mainctrl").removeClass('red').addClass('blue');
+		updateGraphics();
+	}
+
+	function updateGraphics(){
+		var d = a();
+		$("#songname").html(prettify(songs[i]));
+		//update play/pause icon
+		$("#playpause i").html(d.paused ? 'play_arrow':'pause' );
+
+		$("#mainctrl").removeClass(d.paused ? 'blue':'red').addClass(!d.paused ? 'blue':'red');
+
+		//highlight only the selected song
+		$($("#songs .song")).removeClass('blue white-text');
+		$($("#songs .song")[i]).addClass('blue white-text');
+
+		//toggle play/pause-highlight
+		$("#playpause").removeClass(!d.paused ? 'teal-text white' : 'teal white-text')
+		$("#playpause").addClass(d.paused ? 'teal-text white' : 'teal white-text')
+
+		//toggle <title>
+		$("title").html(d.paused ? originalTitle : `&#9658; ${prettify(songs[i])}`)
+	}
+
+	function prettify(s){
+		return s.replace(/music\/|\..+$/g,'').replace(/\_/g,' ');
+	}
+	//increments/decrements the current song-id
+	function change(o){
+		if(i + o < songs.length && i + o >= 0){
+			i += o;
+		}
+		else{
+			i = songs.length - i - 1;
+		}
+		playSong();
+	}
+
+	function changeTo(o){
+		i = o;
+		playSong();
+	}
+	function toggle(){
+		var d = a();
+		if(d.paused){
+			d.play();
+		}
+		else{
+			d.pause();
+		}
+		updateGraphics();
+	}
+</script>
+</html>
