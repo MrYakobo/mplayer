@@ -11,6 +11,7 @@ A browser window is automatically opened with the player.
 	Space: Pause
 	Left: Backward a track
 	Right: Forward a track
-	r: Randomize
+	s: shuffle
+	l: Loop
 
 Hope you'll enjoy (cause I'm gonna)
