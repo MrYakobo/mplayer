@@ -43,6 +43,9 @@
 			width: 85%;
 			background: linear-gradient(yellow, red);
 		}
+		span.thumb{
+			display: none;
+		}
 	</style>
 </head>
 
@@ -71,9 +74,10 @@
 				</div>
 				<div class="col s6">
 					<div class="card-panel" id="volume">
-						<div class="meter"></div>
-						<button id="volumedown" class="btn-large white blue-text waves-effect waves-blue" onclick="volume(-1)"><i class="material-icons">volume_mute</i></button>
-						<button id="volumeup" class="btn-large white blue-text waves-effect waves-blue" onclick="volume(1)"><i class="material-icons">volume_up</i></button>
+						<input type="range" min="0" max="100" val="85">
+						<!--<div class="meter"></div>-->
+						<!--<button id="volumedown" class="btn-large white blue-text waves-effect waves-blue" onclick="volume(-1)"><i class="material-icons">volume_mute</i></button>
+						<button id="volumeup" class="btn-large white blue-text waves-effect waves-blue" onclick="volume(1)"><i class="material-icons">volume_up</i></button>-->
 					</div>
 				</div>
 				<div class="col s3">
@@ -102,26 +106,8 @@
 </body>
 <script src="bower_components/moment/min/moment.min.js"></script>
 <script>
-	function meterClick(event){
-		if(event.target.className === 'meter'){
-			var b = event.clientX - 400;
-			var newVolume = ( b-$("#volume").parent().position().left ) / $("#volume").outerWidth();
-			console.log(newVolume);
-			console.log(b);
-			currVolume = newVolume;
-		}
-		a().volume = between(0,1,currVolume);
-		updateGraphics();
-	}
 
-	var currVolume = .85;
-	function volume(o) {
-		currVolume = between(0,1,currVolume + o * .2);
-		a().volume = currVolume;
-		updateGraphics();
-	}
-
-	//helper function, returns min, max or arg
+	//(unused) helper function, returns min, max or arg
 	function between(min, max, arg){
 		if(arg > max) return max;
 		if(arg < min) return min;
@@ -305,6 +291,25 @@
 			d.pause();
 		}
 		updateGraphics();
+	}
+
+	var storage = localStorage.getItem('volume');
+	if(storage != null) {
+		$("#volume input").val(parseFloat(storage)*100);
+	}
+	var currVolume = parseInt($("#volume input").val())/100;
+	console.log(currVolume)
+
+	setInterval(volumeCheck, 50);
+	function volumeCheck() {
+		var t = parseInt($("#volume input").val())/100;
+
+		if(currVolume != t){
+			//This makes the volume slider more sensitive in lower ends, and less sensitive in higher ends
+			a().volume = Math.pow(t, Math.E);
+			localStorage.setItem('volume',t);
+			currVolume = t;
+		}	
 	}
 </script>
 
