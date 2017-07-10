@@ -32,31 +32,29 @@
 			width: 0px;
 			background: transparent;
 		}
-		#volume{
+
+		#volume {
 			position: relative;
 		}
-		#volume .meter{
-			position: absolute;
-			top: 0;
-			left: 0;
-			height: 100%;
-			width: 85%;
-			background: linear-gradient(yellow, red);
-		}
-		span.thumb{
+
+		span.thumb {
 			display: none;
+		}
+
+		#seekerDigital{
+			font-size: 1.2em;
 		}
 	</style>
 </head>
 
 <body class=" center-align" onkeydown="keypress(event)">
-	<audio id="audio" onended="songEnded()" src="" volume="0.75"></audio>
+	<audio id="audio" onended="songEnded()" src="" volume="0.75">Please upgrade your browser to a HTML5 compilant one. &heart;</audio>
 
 	<div id="mainctrl" class="card-panel red darken-4 white-text">
 		<h3 id="songname"></h3>
 		<div class="row">
 			<div class="col s4 push-m2 push-l3">
-				<button class="btn-large white green-text waves-effect waves-darken" onclick="change(-1)"><i class="material-icons">skip_previous</i></button>
+				<button class="btn-large white green-text waves-effect waves-darken" onclick="prev()"><i class="material-icons">skip_previous</i></button>
 			</div>
 
 			<div class="col s4">
@@ -69,32 +67,37 @@
 
 		<div class="row">
 			<div class="col s12 l6 push-l3 row">
-				<div class="col s3">
+				<div class="col l3 s3">
 					<button id="shuffle" class="btn-large white pink-text waves-effect waves-darken" onclick="shuffleToggle()"><i class="material-icons">shuffle</i></button>
 				</div>
-				<div class="col s6">
-					<div class="card-panel" id="volume">
-						<input type="range" min="0" max="100" val="85">
-						<!--<div class="meter"></div>-->
-						<!--<button id="volumedown" class="btn-large white blue-text waves-effect waves-blue" onclick="volume(-1)"><i class="material-icons">volume_mute</i></button>
-						<button id="volumeup" class="btn-large white blue-text waves-effect waves-blue" onclick="volume(1)"><i class="material-icons">volume_up</i></button>-->
+				<div class="col l6 s6">
+					<div class="card-panel blue-text row valign-wrapper center-align" id="volume">
+						<div class="col s1">
+							<i class="material-icons">volume_mute</i>
+						</div>
+						<div class="col s9">
+							<input type="range" min="0" max="100" val="85">
+						</div>
+						<div class="col s1">
+							<i class="material-icons">volume_up</i>
+						</div>
 					</div>
 				</div>
-				<div class="col s3">
+				<div class="col l3 s3">
 				</div>
-				<div class="col s3">
+				<div class="col l3 s3">
 					<button id="loop" class="btn-large white pink-text waves-effect waves-darken" onclick="loopToggle()"><i class="material-icons">loop</i></button>
 				</div>
 			</div>
 		</div>
-		<!--
-	<div class="card-panel">
-		 <p class="range-field">
-		 	<p id="timeText" class="black-text">0:00</p>
-		       <input type="range" id="time" min="0" max="100" value="0" onchange="timeChange()" />
-		 </p>
- </div>
--->
+
+		<div class="row black-text">
+		<p id="seekerDigital" class="card-panel col m1 s2">00:00</p>
+		<div class="card-panel col m11 s10">
+			<input type="range" id="seeker" min="0" max="10000" value="0">
+			</div>
+		</div>
+
 	</div>
 	<div class="container">
 		<div class="row card-panel teal-text" id="songs">
@@ -104,13 +107,49 @@
 		</div>
 	</div>
 </body>
-<script src="bower_components/moment/min/moment.min.js"></script>
+<script src="http://momentjs.com/downloads/moment.min.js"></script>
 <script>
+	var currValue = 0;
+	var seekerInterval = setInterval(seeker, 10);
+
+	function seeker() {
+		var d = a();
+		if(!d.paused){
+			var measuredValue = parseInt($("#seeker").val());
+			if(!isNaN(d.duration)){
+				//if user clicked the seeker
+				if (measuredValue != currValue) {
+					var requestedPercentage = measuredValue/10000;
+					d.currentTime = requestedPercentage * d.duration;
+					currValue = measuredValue;
+				} else {
+					var value = Math.floor(d.currentTime / d.duration * 10000);
+					currValue = value;
+					$("#seeker").val(value);
+				}
+			}
+
+			var t = moment.duration(d.currentTime, 'seconds');
+			
+			$("#seekerDigital").html(pad(t.minutes()) + ':' + pad(t.seconds()))
+		}
+	}
+
+	function pad(num) {
+		var s = num+"";
+		while (s.length < 2) s = "0" + s;
+		return s;
+	}
+
+	function volume(o) {
+		var val = parseInt($("#volume input").val());
+		$("#volume input").val(val + o * 4)
+	}
 
 	//(unused) helper function, returns min, max or arg
-	function between(min, max, arg){
-		if(arg > max) return max;
-		if(arg < min) return min;
+	function between(min, max, arg) {
+		if (arg > max) return max;
+		if (arg < min) return min;
 		return arg;
 	}
 
@@ -126,12 +165,26 @@
 		if (i < songs.length - 1 || loop) {
 			change(1);
 		}
-		//else: pause the playback
+		//else: pause the playback and go to first song.
 		else {
+			i = 0;
 			a().pause();
-
 			updateGraphics();
 		}
+		currValue = 0;
+	}
+
+	function prev(){
+		//if more than 6 seconds has passed by, a prev should reset the song.
+		var d = a();
+		if(d.currentTime < 6){
+			//else: go back
+			///special case if first song: if loop true: change(-1)
+			if (i > 0 || loop) {
+				change(-1);
+			}
+		}
+		d.currentTime = 0;
 	}
 
 	function keypress(e) {
@@ -140,18 +193,17 @@
 		} else if (e.key === 'ArrowRight') {
 			songEnded();
 		} else if (e.key === 'ArrowLeft') {
-			change(-1);
+			prev();
 		} else if (e.key === 's') {
 			shuffleToggle();
 			return;
 		} else if (e.key === 'l') {
 			loopToggle();
-		} else if(e.key === 'ArrowUp'){
+		} else if (e.key === 'ArrowUp') {
 			volume(1);
-		} else if(e.key === 'ArrowDown'){
+		} else if (e.key === 'ArrowDown') {
 			volume(-1);
-		}
-		else {
+		} else {
 			return;
 		}
 		e.preventDefault();
@@ -197,21 +249,12 @@
 		//if not already shuffled
 		var currentSong = songs[i];
 		if (JSON.stringify(songs) === JSON.stringify(originalSongs)) {
-
-			//shuffle, then find the currently selected song.
 			songs = shuffle(songs);
 		}
 		//if shuffled, unshuffle
 		else {
 			songs = JSON.parse(JSON.stringify(originalSongs));
 		}
-		//unused: find the currently selected song in the newly shuffled list, and select it.
-		// for (var j = 0; j < songs.length; j++) {
-		// 	if (songs[j] == currentSong) {
-		// 		i = j;
-		// 		break;
-		// 	}
-		// }
 
 		i = 0;
 		a().src = songs[i];
@@ -235,10 +278,13 @@
 
 	function playSong() {
 		var d = a();
-		d.pause();
+		//d.pause();
 		d.src = songs[i];
 		d.play();
+		currValue = 0;
+		$("#seeker").val("0");
 		$("#mainctrl").removeClass('red').addClass('blue');
+
 		updateGraphics();
 	}
 
@@ -260,9 +306,6 @@
 
 		//toggle <title>
 		$("title").html(d.paused ? originalTitle : `&#9658; ${prettify(songs[i])}`)
-
-		//volume
-		$(".meter").css('width', currVolume*100 + "%");
 	}
 
 	function prettify(s) {
@@ -294,22 +337,23 @@
 	}
 
 	var storage = localStorage.getItem('volume');
-	if(storage != null) {
-		$("#volume input").val(parseFloat(storage)*100);
+	if (storage != null) {
+		$("#volume input").val(parseFloat(storage) * 100);
 	}
-	var currVolume = parseInt($("#volume input").val())/100;
+	var currVolume = parseInt($("#volume input").val()) / 100;
 	console.log(currVolume)
 
 	setInterval(volumeCheck, 50);
-	function volumeCheck() {
-		var t = parseInt($("#volume input").val())/100;
 
-		if(currVolume != t){
+	function volumeCheck() {
+		var t = parseInt($("#volume input").val()) / 100;
+
+		if (currVolume != t) {
 			//This makes the volume slider more sensitive in lower ends, and less sensitive in higher ends
 			a().volume = Math.pow(t, Math.E);
-			localStorage.setItem('volume',t);
+			localStorage.setItem('volume', t);
 			currVolume = t;
-		}	
+		}
 	}
 </script>
 

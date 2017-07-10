@@ -1,6 +1,14 @@
 # mplayer - yet another music player
 This is (yet) another project inspired by tapio's incredible [live-server](https://github.com/tapio/live-server). I've recently found myself listening to music, but hating all of the "good" options for a music player on Linux, which drove me to this project. My aim with this project is to make it as natural as `live-server` whilst developing.
 
+## Installation
+### Bleeding edge version:
+git clone https://github.com/MrYakobo/mplayer
+npm install -g
+
+### "Stable" version:
+npm install -g mplayer
+
 ## Usage
 	cd /path/to/music
 	mplayer
